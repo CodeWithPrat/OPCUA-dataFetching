@@ -3,11 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@progress/kendo-react-gauges": "^8.3.0",
+    "@syncfusion/ej2-base": "^27.1.50",
+    "@syncfusion/ej2-react-circulargauge": "^27.1.50",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "axios": "^1.7.7",
+    "d3": "^7.9.0",
+    "highcharts": "^11.4.8",
+    "highcharts-react-official": "^3.2.1",
+    "lucide-react": "^0.446.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
   },
@@ -34,5 +43,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.13"
   }
 }
