@@ -62,15 +62,17 @@ const HomePage = () => {
               Spindle Page
             </button>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <DataTable 
+              <DataTable
                 title="Temperature Data (°C)"
                 headers={['X+', 'X-', 'Xb', 'Y', 'Yb']}
                 data={spindleTempData}
+                icon={<Thermometer className="w-6 h-6 text-red-400" />}
               />
               <DataTable 
                 title="Vibration Data (mm/sec)"
                 headers={['Front X', 'Front Y', 'Rear Y', 'Rear X']}
                 data={spindleVibrationData}
+                icon={<Activity className="w-6 h-6 text-green-400" />}
               />
             </div>
           </DashboardCard>
@@ -85,11 +87,13 @@ const HomePage = () => {
                 title="Temperature Data (°C)" 
                 headers={['X+', 'X-', 'Xb', 'Y', 'Yb']}
                 data={feedDriveTempData}
+                icon={<Thermometer className="w-6 h-6 text-red-400" />}
               />
               <DataTable 
                 title="Vibration Data (mm/sec)" 
                 headers={['Front X', 'Front Y', 'Rear Y', 'Rear X']}
                 data={feedDriveVibrationData}
+                icon={<Activity className="w-6 h-6 text-green-400" />}
               />
             </div>
           </DashboardCard>
@@ -114,9 +118,12 @@ const DashboardCard = ({ title, icon, children }) => (
   </div>
 );
 
-const DataTable = ({ title, headers, data }) => (
+const DataTable = ({ title, headers, data, icon }) => (
   <div className="overflow-x-auto">
-    <h4 className="text-lg font-semibold mb-2">{title}</h4>
+    <div className="flex items-center mb-2">
+      {icon}
+      <h4 className="text-lg font-semibold ml-2">{title}</h4>
+    </div>
     <table className="min-w-full bg-gray-700 rounded-lg overflow-hidden">
       <thead>
         <tr>
