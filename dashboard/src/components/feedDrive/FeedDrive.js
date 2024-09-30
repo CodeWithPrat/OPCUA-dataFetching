@@ -7,7 +7,7 @@ import axios from 'axios';
 
 HighchartsMore(Highcharts);
 
-const GaugeChart = ({ title, unit, maxValue, data, color, icon: Icon }) => {
+const GaugeChart = ({ title, unit, maxValue, data, color, icon: Icon, onDoubleClick }) => {
     const options = {
         chart: {
             type: 'gauge',
@@ -76,7 +76,10 @@ const GaugeChart = ({ title, unit, maxValue, data, color, icon: Icon }) => {
     };
 
     return (
-        <div className="bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+        <div
+            className="bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+            onDoubleClick={onDoubleClick}
+        >
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-bold text-white">{title}</h2>
                 <Icon className="w-8 h-8" style={{ color }} />
@@ -104,6 +107,8 @@ const MultipleGaugesFD = () => {
         position: 0,
         speed: 0,
     });
+    const [selectedLog, setSelectedLog] = useState(null);
+    const [logData, setLogData] = useState({});
 
     useEffect(() => {
         const fetchData = async () => {
@@ -119,6 +124,19 @@ const MultipleGaugesFD = () => {
                     position: parseFloat(data.position) || 0,
                     speed: parseFloat(data.speed) || 0,
                 });
+                const timestamp = new Date().toLocaleTimeString();
+                setLogData(prev => ({
+                    ...prev,
+                    [timestamp]: {
+                        current: data.current,
+                        torque: data.torque,
+                        power: data.power,
+                        voltage: data.voltage,
+                        temperature: data.temperature,
+                        position: data.position,
+                        speed: data.speed,
+                    }
+                }));
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
@@ -130,6 +148,35 @@ const MultipleGaugesFD = () => {
         return () => clearInterval(interval);
     }, []);
 
+    const plotLogGraph = (metric) => {
+        setSelectedLog(metric);
+    };
+
+    const chartOptions = {
+        chart: {
+            type: 'line',
+            backgroundColor: '#1f2937',
+            height: 400
+        },
+        title: {
+            text: `Log Data for ${selectedLog}`,
+            style: { color: '#fff' }
+        },
+        xAxis: {
+            categories: Object.keys(logData),
+            labels: { style: { color: '#fff' } }
+        },
+        yAxis: {
+            title: { text: selectedLog, style: { color: '#fff' } },
+            labels: { style: { color: '#fff' } }
+        },
+        series: [{
+            name: selectedLog,
+            data: Object.values(logData).map(item => parseFloat(item[selectedLog]) || 0),
+            color: '#3b82f6'
+        }]
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 p-8">
             <div className="container mx-auto">
@@ -137,14 +184,20 @@ const MultipleGaugesFD = () => {
                     Real-Time FeedDrive Readings
                 </h1>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                    <GaugeChart title="Current" unit="A" maxValue={100} data={gaugeData.current} color="#3b82f6" icon={Zap} />
-                    <GaugeChart title="Torque" unit="Nm" maxValue={100} data={gaugeData.torque} color="#10b981" icon={Activity} />
-                    <GaugeChart title="Power" unit="kW" maxValue={200} data={gaugeData.power} color="#f59e0b" icon={Zap} />
-                    <GaugeChart title="Voltage" unit="V" maxValue={240} data={gaugeData.voltage} color="#6366f1" icon={Zap} />
-                    <GaugeChart title="Temperature" unit="°C" maxValue={120} data={gaugeData.temperature} color="#ef4444" icon={Thermometer} />
-                    <GaugeChart title="Position" unit="" maxValue={120} data={gaugeData.position} color="#8b5cf6" icon={Gauge} />
-                    <GaugeChart title="Speed" unit="RPM" maxValue={5000} data={gaugeData.speed} color="#ec4899" icon={Gauge} />
+                    <GaugeChart title="Current" unit="A" maxValue={100} data={gaugeData.current} color="#3b82f6" icon={Zap} onDoubleClick={() => plotLogGraph('current')} />
+                    <GaugeChart title="Torque" unit="Nm" maxValue={100} data={gaugeData.torque} color="#10b981" icon={Activity} onDoubleClick={() => plotLogGraph('torque')} />
+                    <GaugeChart title="Power" unit="kW" maxValue={200} data={gaugeData.power} color="#f59e0b" icon={Zap} onDoubleClick={() => plotLogGraph('power')} />
+                    <GaugeChart title="Voltage" unit="V" maxValue={240} data={gaugeData.voltage} color="#6366f1" icon={Zap} onDoubleClick={() => plotLogGraph('voltage')} />
+                    <GaugeChart title="Temperature" unit="°C" maxValue={120} data={gaugeData.temperature} color="#ef4444" icon={Thermometer} onDoubleClick={() => plotLogGraph('temperature')} />
+                    <GaugeChart title="Position" unit="" maxValue={120} data={gaugeData.position} color="#8b5cf6" icon={Gauge} onDoubleClick={() => plotLogGraph('position')} />
+                    <GaugeChart title="Speed" unit="RPM" maxValue={5000} data={gaugeData.speed} color="#ec4899" icon={Gauge} onDoubleClick={() => plotLogGraph('speed')} />
                 </div>
+
+                {selectedLog && (
+                    <div className="mt-12">
+                        <HighchartsReact highcharts={Highcharts} options={chartOptions} />
+                    </div>
+                )}
             </div>
         </div>
     );
