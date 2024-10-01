@@ -1,38 +1,33 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { Activity, Thermometer, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import cmtilogo from "../../assets/cmti.png"
-import orthogif from "../../assets/orthogonal.gif"
+import cmtilogo from "../../assets/cmti.png";
+import orthogif from "../../assets/orthogonal.gif";
 
 const HomePage = () => {
   const navigate = useNavigate();
   const [machineStatus, setMachineStatus] = useState('off');
-  const [spindleTempData, setSpindleTempData] = useState({});
-  const [spindleVibrationData, setSpindleVibrationData] = useState({});
-  const [feedDriveTempData, setFeedDriveTempData] = useState({});
-  const [feedDriveVibrationData, setFeedDriveVibrationData] = useState({});
+  const [tempData, setTempData] = useState({});
+  const [vibrationData, setVibrationData] = useState({});
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const spindleTempResponse = await axios.get('/api/spindle-temperature-data');
-        const spindleVibrationResponse = await axios.get('/api/spindle-vibration-data');
-        const feedDriveTempResponse = await axios.get('/api/feed-drive-temperature-data');
-        const feedDriveVibrationResponse = await axios.get('/api/feed-drive-vibration-data');
-        
-        setSpindleTempData(spindleTempResponse.data);
-        setSpindleVibrationData(spindleVibrationResponse.data);
-        setFeedDriveTempData(feedDriveTempResponse.data);
-        setFeedDriveVibrationData(feedDriveVibrationResponse.data);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
+    const tempSource = new EventSource('https://cmti-edge.online/OPCUA/temperature.php');
+    const vibrationSource = new EventSource('https://cmti-edge.online/OPCUA/Vibration.php');
+
+    tempSource.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      setTempData(data);
     };
 
-    fetchData();
-    const interval = setInterval(fetchData, 5000);
-    return () => clearInterval(interval);
+    vibrationSource.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      setVibrationData(data);
+    };
+
+    return () => {
+      tempSource.close();
+      vibrationSource.close();
+    };
   }, []);
 
   return (
@@ -64,14 +59,14 @@ const HomePage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <DataTable
                 title="Temperature Data (°C)"
-                headers={['X+', 'X-', 'Xb', 'Y', 'Yb']}
-                data={spindleTempData}
+                headers={['Xp', 'Xm', 'Xb', 'Y', 'Yb']}
+                data={tempData}
                 icon={<Thermometer className="w-6 h-6 text-red-400" />}
               />
               <DataTable 
                 title="Vibration Data (mm/sec)"
-                headers={['Front X', 'Front Y', 'Rear Y', 'Rear X']}
-                data={spindleVibrationData}
+                headers={['X', 'Y', 'Z', 'Couple']}
+                data={vibrationData}
                 icon={<Activity className="w-6 h-6 text-green-400" />}
               />
             </div>
@@ -85,14 +80,14 @@ const HomePage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <DataTable 
                 title="Temperature Data (°C)" 
-                headers={['X+', 'X-', 'Xb', 'Y', 'Yb']}
-                data={feedDriveTempData}
+                headers={['Xp', 'Xm', 'Xb', 'Y', 'Yb']}
+                data={tempData}
                 icon={<Thermometer className="w-6 h-6 text-red-400" />}
               />
               <DataTable 
                 title="Vibration Data (mm/sec)" 
-                headers={['Front X', 'Front Y', 'Rear Y', 'Rear X']}
-                data={feedDriveVibrationData}
+                headers={['X', 'Y', 'Z', 'Couple']}
+                data={vibrationData}
                 icon={<Activity className="w-6 h-6 text-green-400" />}
               />
             </div>
@@ -135,7 +130,7 @@ const DataTable = ({ title, headers, data, icon }) => (
       <tbody>
         <tr>
           {headers.map((header, index) => (
-            <td key={index} className="py-2 px-4 border-b border-gray-600">{data[header.toLowerCase().replace(' ', '')]}</td>
+            <td key={index} className="py-2 px-4 border-b border-gray-600">{data[header] !== undefined ? data[header].toFixed(2) : 'N/A'}</td>
           ))}
         </tr>
       </tbody>

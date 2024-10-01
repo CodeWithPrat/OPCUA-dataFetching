@@ -3,7 +3,6 @@ import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import HighchartsMore from 'highcharts/highcharts-more';
 import { Zap, Thermometer, Activity, Gauge } from 'lucide-react';
-import axios from 'axios';
 
 HighchartsMore(Highcharts);
 
@@ -89,7 +88,7 @@ const GaugeChart = ({ title, unit, maxValue, data, color, icon: Icon, onDoubleCl
     );
 };
 
-const MultipleGaugesFD = () => {
+const MultipleGauges = () => {
     const [gaugeData, setGaugeData] = useState({
         current: 0,
         torque: 0,
@@ -102,69 +101,94 @@ const MultipleGaugesFD = () => {
     const [logData, setLogData] = useState({});
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await axios.get('https://cmti-edge.online/smddc/machinedate.php');
-                const data = response.data;
-                setGaugeData({
-                    current: parseFloat(data.current) || 0,
-                    torque: parseFloat(data.torque) || 0,
-                    power: parseFloat(data.power) || 0,
-                    voltage: parseFloat(data.voltage) || 0,
-                    temperature: parseFloat(data.temperature) || 0,
-                    speed: parseFloat(data.speed) || 0,
-                });
-                const timestamp = new Date().toLocaleTimeString();
-                setLogData(prev => ({
+        const eventSource = new EventSource('https://cmti-edge.online/OPCUA/spindle.php');
+
+        eventSource.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            setGaugeData({
+                current: parseFloat(data.Current) || 0,
+                torque: parseFloat(data.Torque) || 0,
+                power: parseFloat(data.Power) || 0,
+                voltage: parseFloat(data.Voltage) || 0,
+                temperature: parseFloat(data.Temperature) || 0,
+                speed: parseFloat(data.Speed) || 0,
+            });
+
+            const timestamp = new Date().toLocaleTimeString();
+            setLogData(prev => {
+                const newData = {
                     ...prev,
                     [timestamp]: {
-                        current: data.current,
-                        torque: data.torque,
-                        power: data.power,
-                        voltage: data.voltage,
-                        temperature: data.temperature,
-                        speed: data.speed
+                        current: parseFloat(data.Current) || 0,
+                        torque: parseFloat(data.Torque) || 0,
+                        power: parseFloat(data.Power) || 0,
+                        voltage: parseFloat(data.Voltage) || 0,
+                        temperature: parseFloat(data.Temperature) || 0,
+                        speed: parseFloat(data.Speed) || 0,
                     }
-                }));
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            }
+                };
+                
+                // Keep only the last 50 data points
+                const keys = Object.keys(newData);
+                if (keys.length > 50) {
+                    const slicedKeys = keys.slice(-50);
+                    return slicedKeys.reduce((obj, key) => {
+                        obj[key] = newData[key];
+                        return obj;
+                    }, {});
+                }
+                
+                return newData;
+            });
         };
 
-        fetchData();
-        const interval = setInterval(fetchData, 2000);
+        eventSource.onerror = (error) => {
+            console.error('EventSource failed:', error);
+            eventSource.close();
+        };
 
-        return () => clearInterval(interval);
+        return () => {
+            eventSource.close();
+        };
     }, []);
 
     const plotLogGraph = (metric) => {
         setSelectedLog(metric);
     };
 
-    const chartOptions = {
+    const chartOptions = selectedLog ? {
         chart: {
             type: 'line',
             backgroundColor: '#1f2937',
-            height: 400
+            height: 400,
         },
         title: {
             text: `Log Data for ${selectedLog}`,
-            style: { color: '#fff' }
+            style: { color: '#fff' },
         },
         xAxis: {
             categories: Object.keys(logData),
-            labels: { style: { color: '#fff' } }
+            labels: { 
+                style: { color: '#fff' },
+                rotation: -45,
+                align: 'right'
+            },
         },
         yAxis: {
             title: { text: selectedLog, style: { color: '#fff' } },
-            labels: { style: { color: '#fff' } }
+            labels: { style: { color: '#fff' } },
         },
         series: [{
             name: selectedLog,
             data: Object.values(logData).map(item => parseFloat(item[selectedLog]) || 0),
-            color: '#3b82f6'
-        }]
-    };
+            color: '#3b82f6',
+        }],
+        plotOptions: {
+            series: {
+                animation: false // Disable animation for smoother updates
+            }
+        },
+    } : {};
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 p-8">
@@ -191,4 +215,4 @@ const MultipleGaugesFD = () => {
     );
 };
 
-export default MultipleGaugesFD;
+export default MultipleGauges;
