@@ -3,6 +3,7 @@ import { Activity, Thermometer, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import cmtilogo from "../../assets/cmti.png";
 import orthogif from "../../assets/orthogonal.gif";
+import spingif from "../../assets/spindleGIF.gif"
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -52,7 +53,7 @@ const HomePage = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           <DashboardCard title="Spindle" icon={<Activity className="w-8 h-8 text-blue-400" />}>
-            <img src={orthogif} alt="Spindle" className="w-full h-48 object-cover rounded-lg mb-4" />
+            <img src={spingif} alt="Spindle" className="w-full h-60 object-cover rounded-lg mb-4" />
             <button onClick={() => navigate('/spindle')} className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-full transition duration-300 ease-in-out transform hover:scale-105 mb-4">
               Spindle Page
             </button>
@@ -73,7 +74,7 @@ const HomePage = () => {
           </DashboardCard>
 
           <DashboardCard title="Feed Drive" icon={<Zap className="w-8 h-8 text-yellow-400" />}>
-            <img src={orthogif} alt="Feed Drive" className="w-full h-48 object-cover rounded-lg mb-4" />
+            <img src={orthogif} alt="Feed Drive" className="w-full h-60 object-cover rounded-lg mb-4" />
             <button onClick={() => navigate('/feed-drive')} className="bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded-full transition duration-300 ease-in-out transform hover:scale-105 mb-4">
               Feed Drive Page
             </button>
