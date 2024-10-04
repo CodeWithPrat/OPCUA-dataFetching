@@ -102,44 +102,50 @@ const MultipleGauges = () => {
 
     useEffect(() => {
         const eventSource = new EventSource('https://cmti-edge.online/OPCUA/spindle.php');
+        let lastUpdateTime = 0;
 
         eventSource.onmessage = (event) => {
+            const currentTime = Date.now();
             const data = JSON.parse(event.data);
-            setGaugeData({
-                current: parseFloat(data.Current) || 0,
-                torque: parseFloat(data.Torque) || 0,
-                power: parseFloat(data.Power) || 0,
-                voltage: parseFloat(data.Voltage) || 0,
-                temperature: parseFloat(data.Temperature) || 0,
-                speed: parseFloat(data.Speed) || 0,
-            });
 
-            const timestamp = new Date().toLocaleTimeString();
-            setLogData(prev => {
-                const newData = {
-                    ...prev,
-                    [timestamp]: {
-                        current: parseFloat(data.Current) || 0,
-                        torque: parseFloat(data.Torque) || 0,
-                        power: parseFloat(data.Power) || 0,
-                        voltage: parseFloat(data.Voltage) || 0,
-                        temperature: parseFloat(data.Temperature) || 0,
-                        speed: parseFloat(data.Speed) || 0,
+            if (currentTime - lastUpdateTime > 800) {
+                setGaugeData({
+                    current: parseFloat(data?.Current) || 0,
+                    torque: parseFloat(data?.Torque) || 0,
+                    power: parseFloat(data?.Power) || 0,
+                    voltage: parseFloat(data?.Voltage) || 0,
+                    temperature: parseFloat(data?.Temperature) || 0,
+                    speed: parseFloat(data?.Speed) || 0,
+                });
+                lastUpdateTime = currentTime;
+
+                const timestamp = new Date().toLocaleTimeString();
+                setLogData(prev => {
+                    const newData = {
+                        ...prev,
+                        [timestamp]: {
+                            current: parseFloat(data?.Current) || 0,
+                            torque: parseFloat(data?.Torque) || 0,
+                            power: parseFloat(data?.Power) || 0,
+                            voltage: parseFloat(data?.Voltage) || 0,
+                            temperature: parseFloat(data?.Temperature) || 0,
+                            speed: parseFloat(data?.Speed) || 0,
+                        }
+                    };
+
+                    // Keep only the last 50 data points
+                    const keys = Object.keys(newData);
+                    if (keys.length > 50) {
+                        const slicedKeys = keys.slice(-50);
+                        return slicedKeys.reduce((obj, key) => {
+                            obj[key] = newData[key];
+                            return obj;
+                        }, {});
                     }
-                };
-                
-                // Keep only the last 50 data points
-                const keys = Object.keys(newData);
-                if (keys.length > 50) {
-                    const slicedKeys = keys.slice(-50);
-                    return slicedKeys.reduce((obj, key) => {
-                        obj[key] = newData[key];
-                        return obj;
-                    }, {});
-                }
-                
-                return newData;
-            });
+
+                    return newData;
+                });
+            }
         };
 
         eventSource.onerror = (error) => {
@@ -202,9 +208,8 @@ const MultipleGauges = () => {
                     <GaugeChart title="Power" unit="kW" maxValue={200} data={gaugeData.power} color="#f59e0b" icon={Zap} onDoubleClick={() => plotLogGraph('power')} />
                     <GaugeChart title="Voltage" unit="V" maxValue={240} data={gaugeData.voltage} color="#6366f1" icon={Zap} onDoubleClick={() => plotLogGraph('voltage')} />
                     <GaugeChart title="Temperature" unit="°C" maxValue={120} data={gaugeData.temperature} color="#ef4444" icon={Thermometer} onDoubleClick={() => plotLogGraph('temperature')} />
-                    <GaugeChart title="Speed" unit="RPM" maxValue={5000} data={gaugeData.speed} color="#ec4899" icon={Gauge} onDoubleClick={() => plotLogGraph('speed')} />
+                    <GaugeChart title="Speed" unit="RPM" maxValue={6000} data={gaugeData.speed} color="#8b5cf6" icon={Activity} onDoubleClick={() => plotLogGraph('speed')} />
                 </div>
-
                 {selectedLog && (
                     <div className="mt-12">
                         <HighchartsReact highcharts={Highcharts} options={chartOptions} />
