@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import HighchartsMore from 'highcharts/highcharts-more';
-import { Zap, Thermometer, Activity, Gauge, Truck, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Zap, Thermometer, Activity, Gauge, ArrowLeft, ArrowRight, AlignVerticalSpaceBetween  } from 'lucide-react';
 
 HighchartsMore(Highcharts);
 
@@ -62,7 +62,7 @@ const PositionTracker = ({ position = 0, onDoubleClick }) => {
                         <div className="absolute -inset-4 bg-blue-500/30 blur-xl rounded-full"></div>
                         <div className={`relative bg-blue-600 p-3 rounded-xl shadow-lg transform -translate-x-1/2 
                             ${direction === 'right' ? 'scale-x-1' : direction === 'left' ? 'scale-x-[-1]' : ''}`}>
-                            <Truck className="w-10 h-10 text-white animate-pulse" />
+                            <AlignVerticalSpaceBetween  className="w-10 h-10 text-white animate-pulse" />
                         </div>
                     </div>
                 </div>
