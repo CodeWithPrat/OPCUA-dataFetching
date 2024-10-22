@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { Home, Activity, Zap } from 'lucide-react';
+import { Home, Activity, Zap, ChartSpline  } from 'lucide-react';
 import HomePage from "./components/mainIndex/Homepage";
 import MultipleGauges from "./components/spindle/Spindle";
 import MultipleGaugesFD from "./components/feedDrive/FeedDrive";
+import DigitalTwin from './components/DigitalTwin/DigitalTwin';
 
 // DateTimeDisplay Component
 function DateTimeDisplay() {
@@ -48,6 +49,7 @@ function App() {
               <NavItem to="/" icon={<Home />} text="Home" />
               <NavItem to="/spindle" icon={<Activity />} text="Spindle" />
               <NavItem to="/feed-drive" icon={<Zap />} text="Feed Drive" />
+              <NavItem to="/digital-twin" icon={<ChartSpline />} text="Digital Twin" />
             </ul>
             {/* Right side date and time display */}
             <DateTimeDisplay />
@@ -58,6 +60,7 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/spindle" element={<MultipleGauges />} />
             <Route path="/feed-drive" element={<MultipleGaugesFD />} />
+            <Route path="/digital-twin" element={<DigitalTwin />} />
           </Routes>
         </main>
         <footer className="bg-slate-900 text-white text-center py-4">
